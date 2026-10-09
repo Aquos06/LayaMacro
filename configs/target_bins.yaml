@@ -1,0 +1,126 @@
+# FROZEN. Fitted once on the training split (Nutrition5k + DFood-TJ + NutritionVerse-Real). Changing these edges invalidates every result.
+kcal:
+  edges:
+  - 0.0
+  - 4.0428
+  - 9.7201
+  - 17.6925
+  - 28.8881
+  - 44.6099
+  - 66.6877
+  - 97.6911
+  - 141.2286
+  - 202.3676
+  - 288.224
+  - 408.7905
+  - 578.0998
+  - 815.8578
+  - 1149.7371
+  - 1618.5976
+  - 2277.0099
+  - 3201.6062
+  - 4500.0
+  unit: kcal
+  offset: 10.0
+  fitted_on: 'train splits {''nutrition5k'': 2466, ''dfood_tj'': 2181, ''nutritionverse_real'': 560} (n=5207), 18 bins equal-width in log(v+10) over [0, 4500], train max 3724.2, 2026-09-29; train counts
+    per bin [11, 21, 79, 235, 208, 363, 321, 306, 372, 698, 758, 994, 535, 180, 42, 20, 44, 20]'
+protein_g:
+  edges:
+  - 0.0
+  - 0.4077
+  - 0.9815
+  - 1.7894
+  - 2.9265
+  - 4.5272
+  - 6.7805
+  - 9.9524
+  - 14.4173
+  - 20.7025
+  - 29.55
+  - 42.0044
+  - 59.536
+  - 84.2148
+  - 118.9544
+  - 167.8564
+  - 236.6942
+  - 333.5952
+  - 470.0
+  unit: g
+  offset: 1.0
+  fitted_on: 'train splits {''nutrition5k'': 2466, ''dfood_tj'': 2181, ''nutritionverse_real'': 560} (n=5207), 18 bins equal-width in log(v+1) over [0, 470], train max 391.3, 2026-09-29; train counts per
+    bin [75, 320, 273, 513, 162, 305, 397, 423, 616, 935, 566, 279, 171, 110, 18, 24, 0, 20]'
+carbs_g:
+  edges:
+  - 0.0
+  - 0.4109
+  - 0.9907
+  - 1.8088
+  - 2.9629
+  - 4.5914
+  - 6.8891
+  - 10.1309
+  - 14.7049
+  - 21.1585
+  - 30.2641
+  - 43.1113
+  - 61.2378
+  - 86.813
+  - 122.8977
+  - 173.8107
+  - 245.6451
+  - 346.9982
+  - 490.0
+  unit: g
+  offset: 1.0
+  fitted_on: 'train splits {''nutrition5k'': 2466, ''dfood_tj'': 2181, ''nutritionverse_real'': 560} (n=5207), 18 bins equal-width in log(v+1) over [0, 490], train max 402.0, 2026-09-29; train counts per
+    bin [63, 31, 163, 140, 343, 548, 414, 342, 453, 479, 381, 791, 777, 232, 6, 4, 4, 36]'
+fat_g:
+  edges:
+  - 0.0
+  - 0.3679
+  - 0.871
+  - 1.5593
+  - 2.5007
+  - 3.7885
+  - 5.5499
+  - 7.9593
+  - 11.255
+  - 15.7631
+  - 21.9294
+  - 30.364
+  - 41.9013
+  - 57.6827
+  - 79.2693
+  - 108.7965
+  - 149.1854
+  - 204.4315
+  - 280.0
+  unit: g
+  offset: 1.0
+  fitted_on: 'train splits {''nutrition5k'': 2466, ''dfood_tj'': 2181, ''nutritionverse_real'': 560} (n=5207), 18 bins equal-width in log(v+1) over [0, 280], train max 227.1, 2026-09-29; train counts per
+    bin [537, 145, 210, 340, 294, 298, 365, 656, 548, 558, 548, 352, 131, 125, 36, 44, 4, 16]'
+mass_g:
+  edges:
+  - 0.0
+  - 3.4625
+  - 8.124
+  - 14.3995
+  - 22.8479
+  - 34.2216
+  - 49.5334
+  - 70.1471
+  - 97.8983
+  - 135.2584
+  - 185.5546
+  - 253.266
+  - 344.4228
+  - 467.1429
+  - 632.3552
+  - 854.7728
+  - 1154.2034
+  - 1557.3127
+  - 2100.0
+  unit: g
+  offset: 10.0
+  fitted_on: 'train splits {''nutrition5k'': 2466, ''dfood_tj'': 2181, ''nutritionverse_real'': 560} (n=5207), 18 bins equal-width in log(v+10) over [0, 2100], train max 1669.0, 2026-09-29; train counts
+    per bin [0, 8, 13, 31, 71, 102, 299, 279, 781, 652, 587, 751, 471, 925, 187, 26, 8, 16]'

@@ -1,8 +1,8 @@
 # Data, features and model weights never enter git: download or train them.
-data/
-weights/
-checkpoints/
-runs/
+/data/
+/weights/
+/checkpoints/
+/runs/
 *.pt
 *.pth
 *.safetensors

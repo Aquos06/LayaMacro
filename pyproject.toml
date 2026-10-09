@@ -1,0 +1,75 @@
+[project]
+name = "layamacro"
+version = "0.1.0"
+description = "One meal photo to calories and macros with honest uncertainty: a vision encoder grafted onto the Laya typed decision model"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "Apache-2.0" }
+
+dependencies = [
+    # Laya ships as a pip package, not a transformers AutoModel (docs/LAYA.md).
+    "laya>=0.3.20",
+    "torch>=2.7",
+    "transformers>=4.48",
+    "safetensors>=0.4",
+    "huggingface-hub>=0.28",
+    "numpy>=2.0",
+    "pillow>=11.0",
+    "pydantic>=2.10",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# Training and benchmarking need the datasets' formats and the metrics.
+train = [
+    "pandas>=2.2",
+    "openpyxl>=3.1",       # DFood-TJ labels ship as .xlsx
+    "scikit-learn>=1.6",
+    "peft>=0.14",          # LoRA for the VLM baseline benchmark
+]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.9",
+    "mypy>=1.15",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/layamacro"]
+
+# torch from the CUDA 12.8 index on Linux; CPU wheels elsewhere.
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128", marker = "sys_platform == 'linux'" }]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests", "scripts"]
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src", "scripts"]
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+    "slow: needs model weights or a GPU",
+    "data: needs a downloaded dataset",
+]
