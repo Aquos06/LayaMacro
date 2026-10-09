@@ -16,7 +16,7 @@ base_model:
 # LayaMacro
 
 **One photo of a meal → calories, protein, carbohydrate, fat and food weight, each with an
-80 % uncertainty range.** Code, training and benchmarks: `https://github.com/Aquos06/LayaMacro`.
+80 % uncertainty range.** Code, training and benchmarks: [github.com/Aquos06/LayaMacro](https://github.com/Aquos06/LayaMacro).
 
 > **Research artifact, not a medical device.** Do not use it to make health or dietary
 > decisions. Typical calorie error is 40-60 kcal per meal on the kinds of photos it was
