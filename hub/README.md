@@ -16,7 +16,7 @@ base_model:
 # LayaMacro
 
 **One photo of a meal → calories, protein, carbohydrate, fat and food weight, each with an
-80 % uncertainty range.** Code, training and benchmarks: `<GITHUB-REPO>`.
+80 % uncertainty range.** Code, training and benchmarks: `https://github.com/Aquos06/LayaMacro`.
 
 > **Research artifact, not a medical device.** Do not use it to make health or dietary
 > decisions. Typical calorie error is 40-60 kcal per meal on the kinds of photos it was
@@ -35,15 +35,15 @@ SigLIP 2 and Laya are downloaded from their official repositories on first use.
 ## Use
 
 ```bash
-git clone <GITHUB-REPO> && cd LayaMacro && uv sync
+git clone https://github.com/Aquos06/LayaMacro && cd LayaMacro && uv sync
 uv run python scripts/infer/predict.py \
-    --weights hf://<HF-REPO>/layamacro-macroposterior.pt meal.jpg
+    --weights hf://Aquos06/LayaMacro/layamacro-macroposterior.pt meal.jpg
 ```
 
 ```python
 from layamacro.inference import load_predictor
 
-model = load_predictor("hf://<HF-REPO>/layamacro-laya.pt")
+model = load_predictor("hf://Aquos06/LayaMacro/layamacro-laya.pt")
 model.predict(["meal.jpg"])
 # [{"kcal": {"value": 339.9, "low": 230.0, "high": 460.0}, "protein_g": {...}, ...}]
 ```

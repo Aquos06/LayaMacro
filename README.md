@@ -70,7 +70,7 @@ Python 3.12, [uv](https://docs.astral.sh/uv/), a CUDA GPU recommended (CPU works
 inference, slowly).
 
 ```bash
-git clone <this repository> && cd LayaMacro
+git clone https://github.com/Aquos06/LayaMacro && cd LayaMacro
 uv sync                      # inference only
 uv sync --extra train        # + training and benchmarks
 ```
@@ -78,17 +78,17 @@ uv sync --extra train        # + training and benchmarks
 ## Use a trained model
 
 Weights (CC BY-NC-SA 4.0, see [MODEL_LICENSE.md](MODEL_LICENSE.md)) are on Hugging Face:
-`<HF-REPO>` *(to be filled in at release)*.
+[Aquos06/LayaMacro](https://huggingface.co/Aquos06/LayaMacro).
 
 ```bash
-uv run python scripts/infer/predict.py --weights hf://<HF-REPO>/layamacro-macroposterior.pt meal.jpg
-uv run python scripts/infer/predict.py --weights hf://<HF-REPO>/layamacro-laya.pt meal.jpg
+uv run python scripts/infer/predict.py --weights hf://Aquos06/LayaMacro/layamacro-macroposterior.pt meal.jpg
+uv run python scripts/infer/predict.py --weights hf://Aquos06/LayaMacro/layamacro-laya.pt meal.jpg
 ```
 
 ```python
 from layamacro.inference import load_predictor
 
-model = load_predictor("hf://<HF-REPO>/layamacro-laya.pt")
+model = load_predictor("hf://Aquos06/LayaMacro/layamacro-laya.pt")
 model.predict(["meal.jpg"])   # {"kcal": {"value": ..., "low": ..., "high": ...}, ...}
 ```
 
