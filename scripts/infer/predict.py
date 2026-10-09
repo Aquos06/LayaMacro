@@ -1,12 +1,13 @@
 """Estimate calories and macros for meal photos with a trained LayaMacro model.
 
-    uv run python scripts/infer/predict.py --weights weights/macroposterior.pt meal.jpg
-    uv run python scripts/infer/predict.py --weights weights/laya.pt meal.jpg \\
+    uv run python scripts/infer/predict.py --weights weights/layamacro-macroposterior.pt meal.jpg
+    uv run python scripts/infer/predict.py --weights weights/layamacro-laya.pt meal.jpg \\
         --ask "Does this meal contain rice?" --options yes no
 
 Prints each nutrient as `value (80 % range: low-high)`. `--json` prints machine-readable
-output instead. `--ask` (Laya models only) asks any question with 2-8 options, without
-retraining; its probabilities are raw (not calibrated).
+output instead. `--ask` (Laya models only, experimental) asks any question with 2-8
+options, without retraining; its probabilities are raw (not calibrated), and on questions the
+checkpoint was never trained on they are close to chance (docs/results.md, section 4).
 
 Not a medical device: see MODEL_LICENSE.md.
 """
@@ -31,7 +32,11 @@ LABELS = {
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("photos", nargs="+", type=Path)
-    ap.add_argument("--weights", type=Path, required=True, help="a LayaMacro model.pt")
+    ap.add_argument(
+        "--weights",
+        required=True,
+        help="a LayaMacro checkpoint: a local file or hf://<user>/<repo>/<file>",
+    )
     ap.add_argument("--device", default=None, help="cuda, cuda:1, cpu (default: cuda if available)")
     ap.add_argument("--ask", default=None, help="Laya only: an extra question about each photo")
     ap.add_argument("--options", nargs="+", default=["yes", "no"], help="answers for --ask")

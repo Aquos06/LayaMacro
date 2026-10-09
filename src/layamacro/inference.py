@@ -1,7 +1,7 @@
 """Run a trained LayaMacro model on photos.
 
     from layamacro.inference import load_predictor
-    model = load_predictor("weights/laya.pt")            # or a MacroPosterior checkpoint
+    model = load_predictor("weights/layamacro-laya.pt")   # or hf://<user>/<repo>/<file>
     model.predict(["meal.jpg"])                          # kcal, protein, carbs, fat, grams
     model.ask(["meal.jpg"], "Does this meal contain rice?", ["yes", "no"])   # Laya only
 
@@ -24,13 +24,20 @@ import torch
 from torch import nn
 
 from layamacro.data.images import load_image
-from layamacro.eval.evaluate import load_bins
 from layamacro.posterior import MacroPosterior, distributions
-from layamacro.schema import TARGETS, Question
+from layamacro.schema import TARGETS, MacroBins, Question, load_macro_bins
 from layamacro.vision.encoder import SIGLIP2_LARGE_384
 from layamacro.vision.tail import SiglipTail
 
 COVERAGE = 0.8
+
+
+def _bins(ckpt: dict[str, Any]) -> dict[str, MacroBins]:
+    """The bin edges the model was trained with: shipped inside release checkpoints; for a
+    training run's checkpoint, read from the repository's configs/target_bins.yaml."""
+    if "bins" in ckpt:
+        return {t: MacroBins(**b) for t, b in ckpt["bins"].items()}
+    return load_macro_bins("configs/target_bins.yaml", required=TARGETS)
 
 
 class _Encoder:
@@ -77,7 +84,7 @@ class MacroPosteriorPredictor:
     """SigLIP 2 (optionally with trained last blocks) -> MacroPosterior head."""
 
     def __init__(self, ckpt: dict[str, Any], device: torch.device) -> None:
-        self.bins = load_bins()
+        self.bins = _bins(ckpt)
         head = MacroPosterior(self.bins, d_in=1024, targets=TARGETS)
         k = int(ckpt["args"].get("tune_last", 0))
         self.tail: SiglipTail | None = None
@@ -143,7 +150,7 @@ class LayaPredictor:
             self.tail.load_state_dict(ckpt["tail"])
             self.tail.to(device).eval()
         self.hidden_layer = self.tail.first if self.tail is not None else None
-        self.bins = load_bins()
+        self.bins = _bins(ckpt)
         self.questions = nutrition_questions(self.bins)
         self.temps = ckpt.get("temperatures")
         self.device = device
@@ -215,6 +222,12 @@ def load_predictor(
 ) -> MacroPosteriorPredictor | LayaPredictor:
     """Load a LayaMacro checkpoint (MacroPosterior or Laya graft) for inference."""
     dev = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    if str(path).startswith("hf://"):
+        # hf://<user>/<repo>/<file>: download (and cache) from the Hugging Face Hub
+        from huggingface_hub import hf_hub_download
+
+        user, repo, filename = str(path)[5:].split("/", 2)
+        path = hf_hub_download(f"{user}/{repo}", filename)
     ckpt = torch.load(path, map_location="cpu", weights_only=False)
     args = ckpt["args"]
     if not isinstance(args, dict):

@@ -8,7 +8,8 @@
 - **Only what we trained**: for a Laya graft, tensors identical to the downloaded Laya
   checkpoint are dropped; the loader takes them from the official Laya release. The export
   verifies that the slim checkpoint rebuilds a model whose state equals the full one.
-- **No machine paths**: training arguments are reduced to what the loader needs.
+- **Self-contained**: the bin edges travel with the weights, and training arguments are
+  reduced to what the loader needs (no machine paths).
 
 Released weights are CC BY-NC-SA 4.0 (MODEL_LICENSE.md).
 """
@@ -21,7 +22,7 @@ from typing import Any
 
 import torch
 
-from layamacro.eval.evaluate import evaluate_run
+from layamacro.eval.evaluate import evaluate_run, load_bins
 from layamacro.schema import TARGETS
 
 #: Training arguments the inference loader needs; everything else is dropped.
@@ -69,6 +70,7 @@ def main() -> None:
         "kind": "laya" if is_laya else "macroposterior",
         "args": {k: run_args[k] for k in KEEP_ARGS if k in run_args},
         "temperatures": temps,
+        "bins": {t: b.model_dump() for t, b in load_bins().items()},
         "test_summary": {
             k: {m: float(v) for m, v in r["summary"].items()} for k, r in ev["results"].items()
         },
