@@ -1,0 +1,59 @@
+LayaMacro
+Copyright 2026 The LayaMacro authors
+
+This product's source code is licensed under the Apache License, Version 2.0 (see LICENSE).
+Trained model weights are licensed separately (see MODEL_LICENSE.md).
+
+LayaMacro is built on the following work. It is NOT affiliated with, sponsored by, or
+endorsed by any of their authors. "Laya" refers to the upstream model by convaiinnovations;
+its use in this project's name describes what the project is built on and implies no
+endorsement.
+
+------------------------------------------------------------------------------------------
+Models used (downloaded from their official sources at run time, not redistributed here)
+------------------------------------------------------------------------------------------
+
+Laya (laya-typed-decisions), by convaiinnovations
+  https://huggingface.co/convaiinnovations/laya
+  Licence: Apache License 2.0
+  An encoder-only typed decision model built on ModernBERT-large (Apache License 2.0,
+  Answer.AI and LightOn).
+
+SigLIP 2 (google/siglip2-large-patch16-384), by Google
+  https://huggingface.co/google/siglip2-large-patch16-384
+  Licence: Apache License 2.0
+
+------------------------------------------------------------------------------------------
+Datasets used for training (not redistributed here; download from their sources)
+------------------------------------------------------------------------------------------
+
+Nutrition5k
+  Thames et al., "Nutrition5k: Towards Automatic Nutritional Understanding of Generic
+  Food", CVPR 2021. https://github.com/google-research-datasets/Nutrition5k
+  Licence: CC BY 4.0
+
+DFood-TJ-F-Nutr ("Chinese Food Images for Full-cycle Nutrition Analysis Towards Diabetes
+  Management"), Scientific Data 2026. Dataset: https://doi.org/10.57760/sciencedb.28012
+  Licence: CC0 1.0 (as stated on the Science Data Bank dataset page)
+  Contains photos of hospital patients' meals: no image from it is included in this
+  repository, its documentation or its released artifacts.
+
+NutritionVerse-Real
+  "NutritionVerse: Empirical Study of Various Dietary Intake Estimation Approaches",
+  arXiv:2309.07704. https://www.kaggle.com/datasets/nutritionverse/nutritionverse-real
+  Licence: CC BY-NC-SA 4.0  ->  this is why the released weights are non-commercial
+  (MODEL_LICENSE.md).
+
+------------------------------------------------------------------------------------------
+Datasets used for evaluation only (benchmark scripts; never used for training)
+------------------------------------------------------------------------------------------
+
+Food Portion Benchmark (ISSAI), IEEE Access 2025.
+  https://huggingface.co/datasets/issai/Food_Portion_Benchmark
+  Licence: CC BY-NC 4.0
+
+LeFood-Set, Mendeley Data cchsk79jkt, 2025.
+  Licence: CC BY 4.0
+
+Nutrition tables used to derive benchmark-only calorie/macro labels from weighed grams:
+  USDA FoodData Central (public domain); Tabel Komposisi Pangan Indonesia (TKPI).

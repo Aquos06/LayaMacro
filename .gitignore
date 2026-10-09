@@ -1,0 +1,30 @@
+# Data, features and model weights never enter git: download or train them.
+data/
+weights/
+checkpoints/
+runs/
+*.pt
+*.pth
+*.safetensors
+*.bin
+*.npz
+
+# Images (meal photos can be personal data)
+*.jpg
+*.jpeg
+*.JPG
+*.png
+*.heic
+*.webp
+!docs/figures/*.png
+
+# Python / tooling
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
