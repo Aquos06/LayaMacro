@@ -75,6 +75,14 @@ def main() -> None:
             k: {m: float(v) for m, v in r["summary"].items()} for k, r in ev["results"].items()
         },
     }
+    if is_laya and run_args.get("multitask"):
+        # The food names the question bank trained on (answered well) and those held out
+        # (never trained on: answered weakly). Shipped so users know what to ask about.
+        from layamacro.data.questions import vocab
+
+        v = vocab()
+        out["foods"] = sorted(set().union(*(known for known, _ in v.values())))
+        out["foods_untrained"] = sorted(set().union(*(held for _, held in v.values())))
     if is_laya:
         out["model"] = slim_laya(ckpt["model"], run_args)
         out["tail"] = ckpt.get("tail")

@@ -153,6 +153,8 @@ class LayaPredictor:
         self.bins = _bins(ckpt)
         self.questions = nutrition_questions(self.bins)
         self.temps = ckpt.get("temperatures")
+        #: Food names a multi-task checkpoint was trained to recognise (empty otherwise).
+        self.foods: list[str] = list(ckpt.get("foods", []))
         self.device = device
         self.encoder = _Encoder(device)
 
@@ -193,11 +195,20 @@ class LayaPredictor:
             out.append(torch.softmax(lg[:, j, : q.n_options] / t, -1).cpu())
         return out
 
-    def predict(self, paths: list[str | Path]) -> list[dict[str, dict[str, float]]]:
+    def _distributions(self, paths: list[str | Path]) -> list[Any]:
         feats = self.encoder(paths, self.hidden_layer)
         probs = self._option_probs(feats, self.questions)
         logits = [torch.log(p.clamp_min(1e-12)) for p in probs]
-        return _summary(distributions(logits, [self.bins[t] for t in TARGETS], self.temps))
+        return distributions(logits, [self.bins[t] for t in TARGETS], self.temps)
+
+    def predict(self, paths: list[str | Path]) -> list[dict[str, dict[str, float]]]:
+        return _summary(self._distributions(paths))
+
+    def prob_over(self, paths: list[str | Path], target: str, value: float) -> list[float]:
+        """P(target > value), e.g. ("kcal", 500): read from the calibrated nutrition
+        distribution, so more reliable than asking the same thing as a text question."""
+        d = self._distributions(paths)[TARGETS.index(target)]
+        return [float(x) for x in d.prob_above(value)]
 
     def ask(
         self, paths: list[str | Path], question: str, options: list[str]

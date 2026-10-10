@@ -1,43 +1,38 @@
 # Results
 
-All numbers were measured on the test splits in `docs/datasets.md`, with the metrics below,
-during the research that produced LayaMacro (October 2026). The scripts in
-`scripts/benchmark/` reproduce them from the released checkpoints or from your own runs.
-"Mean of N seeds" means the same recipe trained N times with different random seeds; Laya in
-particular varies a lot between seeds, so single-seed numbers are marked.
+Measured on the test splits in `docs/datasets.md` during the research behind LayaMacro
+(October 2026). The scripts in `scripts/benchmark/` reproduce them from the released
+checkpoint or from your own runs; asking the bank's questions through the released file
+reproduces the benchmark (e.g. "contains X?" on Nutrition5k: 0.891 vs 0.892).
+
+The released checkpoint is **Laya, multi-task, seed 0**: SigLIP 2 frozen, Laya's backbone
+frozen, the projector and Laya's decision head trained for 10 epochs on nutrition and food
+questions. Numbers marked "mean of N seeds" average N trainings of the same recipe; Laya varies
+a lot between seeds.
 
 ## Metrics
 
 - **kcal MAE**: mean absolute calorie error per meal (lower is better). **r**: correlation
   between predicted and true calories.
-- **80 % range coverage**: how often the true value lies inside the model's 80 % range. It
-  should be ≈ 0.80: lower means over-confident, higher means ranges wider than needed.
+- **80 % range coverage**: how often the true value lies inside the model's 80 % range
+  (should be ≈ 0.80).
 - **ECE**: calibration error of the bin probabilities (lower is better).
-- **F1 ±1**: macro F1 over the 18 bins, counting the neighbouring bin as correct, averaged
-  over the five targets.
+- **Accuracy** on food questions, next to **chance**: always giving the most common answer
+  (yes/no), or 0.20 for a 1-of-5 pick.
 
-## Released checkpoints
+## 1. Nutrition
 
-| checkpoint | what | N5k kcal MAE | never-seen | DFood-TJ | NV-Real | 80 % coverage (N5k) |
-|---|---|---|---|---|---|---|
-| `layamacro-macroposterior` | MacroPosterior, last 12 SigLIP 2 blocks trained, seed 0 | **41.1** | 56.5 | **56.0** | 137.6 | 0.83 |
-| `layamacro-laya` | Laya graft, last 4 SigLIP 2 blocks trained, seed 0 | 44.0 | 57.4 | 57.8 | **113.1** | 0.83 |
+kcal MAE, lower is better.
 
-## 1. Test sets (mean of seeds; kcal MAE, lower is better)
+| model | Nutrition5k | never-seen meals | DFood-TJ | NutritionVerse-Real |
+|---|---|---|---|---|
+| **LayaMacro, released checkpoint** | 48.5 (r 0.94) | 62.7 | 63.1 | 169.9 |
+| LayaMacro recipe, mean of 2 seeds | 49.1 | 61.7 | 68.8 | 172.0 |
+| same recipe without food questions, mean of 2 seeds | 46.0 | 59.1 | 70.2 | 137.3 |
+| *no image (predict the training distribution)* | *200.2* | *158.6* | *193.4* | *565.1* |
 
-| model | seeds | Nutrition5k | never-seen meals | DFood-TJ | NutritionVerse-Real |
-|---|---|---|---|---|---|
-| **MacroPosterior, 12 SigLIP 2 blocks trained** | 2 | **41.4** (r 0.95) | **56.7** | **57.0** | 130.3 |
-| MacroPosterior, frozen encoder | 3 | 48.1 | 63.8 | 65.1 | 159.5 |
-| **Laya graft, 4 SigLIP 2 blocks trained** | 2 | 45.7 (r 0.94) | 59.8 | 61.0 | **121.6** |
-| Laya graft, frozen encoder | 2 | 46.0 | 59.1 | 70.2 | 137.3 |
-| Laya graft, multi-task, frozen encoder | 2 | 49.1 | 61.7 | 68.8 | 172.0 |
-| Gemma 4 E2B, fine-tuned (LoRA + head) | 3 | 49.6 | 65.3 | 85.9 | 185.0 |
-| Qwen3.5-2B, fine-tuned (LoRA + head) | 3 | 56.9 | 70.4 | 78.7 | 210.6 |
-| *no image (predict the training distribution)* | — | *200.2* | *158.6* | *193.4* | *565.1* |
-
-Calibration holds on these datasets: 80 % ranges contain the truth 80-84 % of the time and
-ECE is 0.07-0.09 for the MacroPosterior and Laya rows.
+The released checkpoint's 80 % ranges contain the truth 84 % of the time on Nutrition5k
+(ECE 0.08), 92 % on DFood-TJ (too wide there) and 79 % on NutritionVerse-Real.
 
 ## 2. Against published models we downloaded and ran
 
@@ -48,18 +43,16 @@ not a like-for-like comparison.
 | model | Nutrition5k | never-seen | DFood-TJ | NV-Real |
 |---|---|---|---|---|
 | OmniFood8K method (CVPR 2026, official weights) | **36.8** | **50.5** | 168.9 | 639.3 |
-| LayaMacro MacroPosterior (ours) | 41.4 | 56.7 | **57.0** | 130.3 |
-| LayaMacro Laya graft (ours) | 45.7 | 59.8 | 61.0 | **121.6** |
+| **LayaMacro** | 48.5 | 62.7 | **63.1** | **169.9** |
 | FoodLMM (2023, official weights, 7B) | 48.6 | 66.2 | 209.3 | 684.7 |
 | Food-R1 (2026, official weights, 8B; kcal only) | 89.7 | 116.5 | 116.3 | 447.6 |
 
-- On Nutrition5k, **OmniFood8K is best**; our best is second, 4.6 kcal behind. OmniFood8K
-  fine-tunes two full backbones (287 M parameters) and adds a predicted depth map. Its
-  training script keeps the best of 150 epochs by test-set score, which flatters its number
-  by roughly 2-3 kcal.
+- On Nutrition5k, **OmniFood8K is clearly better**. It fine-tunes two full backbones (287 M
+  parameters) and adds a predicted depth map; its training script also keeps the best of 150
+  epochs by test-set score, which flatters its number by roughly 2-3 kcal.
 - Two downloadable models are **not ranked** because they were trained on Nutrition5k test
-  dishes: third-party DPF-Nutrition weights (18.4 kcal, the same as on its training dishes)
-  and CalorieCLIP (its card describes a random split of all dishes).
+  dishes: third-party DPF-Nutrition weights (18.4 kcal, the same as on their training
+  dishes) and CalorieCLIP (its card describes a random split of all dishes).
 
 ## 3. Photos unlike any training data (no model trained on these)
 
@@ -68,64 +61,63 @@ plates). **Grams error (weighed)**, lower is better:
 
 | model | FPB | LeFood, before eating | LeFood, leftovers | 80 % coverage |
 |---|---|---|---|---|
-| Laya graft, 4 blocks trained | **194** | 75 | 69 | 0.09-0.24 |
-| Laya graft, frozen | 216 | **61** | **55** | 0.14-0.25 |
-| MacroPosterior, 12 blocks trained | 224 | 78 | 67 | 0.09-0.20 |
-| OmniFood8K (CVPR 2026) | 283 | 78 | 61 | — |
+| **LayaMacro** | **194** | **77** | 66 | 0.13-0.23 |
+| OmniFood8K (CVPR 2026) | 283 | 78 | **61** | — |
 | *no image* | *214* | *151* | *177* | — |
 
-- **Our best model beats OmniFood8K in every column** (not every one of our models does:
-  on LeFood leftovers OmniFood8K's 61 g beats MacroPosterior and Laya with trained blocks),
-  and **Laya generalises best**.
 - **Every model is poor at portion size on unfamiliar photos.** FPB plates (median 230 g) are
-  predicted at ~95 g by every model (OmniFood8K: 39 g), and LeFood's single items (median
-  46 g) at ~130 g: each model guesses the portion sizes of its own training data. A single
-  photo carries no absolute scale.
-- **Uncertainty ranges are over-confident here**: they contain the truth only 9-25 % of the
-  time, against 80-84 % on the training datasets. Treat ranges on unfamiliar kinds of photos
-  as too narrow.
+  predicted far too small by every model, LeFood's single items (median 46 g) far too large:
+  each model guesses the portion sizes of its own training data. A single photo carries no
+  absolute scale.
+- **Uncertainty ranges are over-confident here**: they contain the truth only 13-23 % of the
+  time, against 79-92 % on the training datasets' test photos.
 
-## 4. Food questions (Laya)
+## 4. Food questions
 
-Accuracy on test photos, pooled over the three datasets (the threshold column: Nutrition5k,
-where always answering "no" scores 0.84). Yes/no food questions: always giving the most common
-answer scores 0.55-0.63; "which of 5" has chance 0.20.
+Accuracy on test photos, pooled over Nutrition5k, DFood-TJ and NutritionVerse-Real
+(threshold questions: Nutrition5k, where always answering "no" scores 0.84). In brackets: the
+same question asked about a photo of a *different* meal; a real image-based answer drops there.
 
-| model | contains X? (trained foods) | contains X? (never-trained foods) | which of 5? (trained) | which of 5? (never-trained) | over 500 kcal / 30 g protein…? (Nutrition5k) |
-|---|---|---|---|---|---|
-| Laya, multi-task, seed 0 | **0.89** | 0.65 | **0.86** | 0.40 | **0.92** |
-| Laya, multi-task, seed 1 | 0.59 | 0.61 | 0.31 | 0.23 | 0.84 |
-| Laya, nutrition only | 0.55 | 0.60 | 0.19 | 0.20 | 0.76 |
-| Qwen3.5-2B, untrained | 0.80 | **0.83** | 0.62 | **0.55** | 0.61 |
-| Gemma 4 E2B, untrained | 0.74 | 0.75 | 0.52 | 0.51 | 0.50 |
+| question | chance | **LayaMacro** | Qwen3.5-2B, untrained | Gemma 4 E2B, untrained |
+|---|---|---|---|---|
+| "Does this meal contain X?", trained foods | 0.56 | **0.89** (0.64) | 0.80 | 0.74 |
+| same, a wording never used in training | 0.55 | **0.88** (0.64) | 0.79 | 0.68 |
+| same, food names never trained on | 0.63 | 0.65 (0.63) | **0.83** | 0.75 |
+| "Which of these 5 foods is on the plate?", trained | 0.20 | **0.86** (0.41) | 0.62 | 0.52 |
+| same, the right answer never trained on | 0.20 | 0.40 (0.32) | **0.55** | 0.51 |
+| "Is this meal over 500 kcal?" and similar (Nutrition5k) | 0.84 | **0.92** (0.77) | 0.61 | 0.50 |
+| same, on DFood-TJ and NV-Real (never trained there) | 0.67 | **0.70** (0.67) | 0.54 | 0.51 |
 
-- **Laya can learn to recognise food** (seed 0: 0.89 / 0.86), and it uses the image: asked
-  about a *different* meal's photo, accuracy drops to 0.64 / 0.41. A question phrasing never
-  seen in training works as well as trained ones (0.88).
-- **New foods transfer only partly.** For food names never trained on, an untrained VLM with
-  broad pre-training is better (0.83 vs 0.65).
-- **Training is unstable**: seed 1 of the same recipe failed to learn the new questions, and
-  multi-task training made calorie estimates worse in both seeds (Nutrition5k 49.1 vs 46.0).
-  The released Laya checkpoint is therefore the nutrition-only one.
+- **It recognises the foods it was trained on, from the image**: accuracy drops sharply when
+  the photo is swapped for another meal's.
+- **New wordings work** as well as trained ones.
+- **New foods mostly don't**: untrained VLMs, with their broad pre-training, beat it there.
+- **Threshold questions barely transfer** to datasets where they were never trained (0.70 vs
+  0.67 for always answering "no"). The nutrition distribution (`prob_over`) is calibrated
+  and preferable for them.
+
+Per-dataset accuracy for the released checkpoint ("contains X?", trained foods): Nutrition5k
+0.89, DFood-TJ 0.91, NutritionVerse-Real 0.85; "which of 5": 0.87 / 0.88 / 0.82.
 
 ## 5. What training adds
 
 Untrained models, as downloaded, on Nutrition5k (kcal MAE): Gemma 4 E2B 310, Qwen3.5-2B 417,
 Laya without an image 482, all worse than guessing without the photo (200). Training brings
-every family to 41-57 kcal: a 6-10x error reduction.
+LayaMacro to 48.5 kcal, and food-question accuracy from chance to 0.86-0.89.
 
-## 6. Where the error comes from
+## 6. Where the calorie error comes from
 
-Calories = grams × calories per gram. Replacing one predicted factor with the truth shows its
-share of the error: perfect grams would cut calorie error by only 11-15 %, perfect calories per
-gram by up to 60 % (DFood-TJ). **Recognising what is on the plate matters more than portion
-size** on these datasets, which is why training the image encoder (48.1 → 41.4 kcal) helped
-most.
+Calories = grams × calories per gram. For the nutrition-only Laya, replacing one predicted
+factor with the truth shows its share: perfect grams cut calorie error by only 11-15 %,
+perfect calories per gram by up to 60 % (DFood-TJ). **Recognising what is on the plate
+matters more than portion size** on these datasets.
 
 ## Negative results, kept on purpose
 
-- Training more than 4 SigLIP 2 blocks inside Laya did not help: with 8 blocks, the two seeds
-  gave 43.4 and 50.6 kcal.
-- Training Laya for 20 instead of 10 epochs shifted which dataset it fits, not the average.
-- Multi-task training cost calorie accuracy (above).
-- On unfamiliar photos the uncertainty ranges are far too narrow (section 3).
+- **Unstable training**: a second seed of the released recipe stayed near chance on the food
+  questions (final loss 1.80 vs 1.35); the released checkpoint is the seed that learned them.
+- **Food questions cost calorie accuracy** (section 1: 46.0 → 49.1 kcal, mean of 2 seeds).
+- **Training SigLIP 2's last blocks inside Laya did not reliably help**: with 8 blocks the two
+  seeds gave 43.4 and 50.6 kcal on Nutrition5k.
+- **20 instead of 10 epochs** shifted which dataset it fits, not the average.
+- **Over-confident ranges on unfamiliar photos** (section 3).
