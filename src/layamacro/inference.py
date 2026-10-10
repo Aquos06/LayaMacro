@@ -16,6 +16,7 @@ by the trained ones.
 
 from __future__ import annotations
 
+import pickle
 import warnings
 from pathlib import Path
 from typing import Any
@@ -233,13 +234,22 @@ def load_predictor(
 ) -> MacroPosteriorPredictor | LayaPredictor:
     """Load a LayaMacro checkpoint (MacroPosterior or Laya graft) for inference."""
     dev = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
-    if str(path).startswith("hf://"):
+    remote = str(path).startswith("hf://")
+    if remote:
         # hf://<user>/<repo>/<file>: download (and cache) from the Hugging Face Hub
         from huggingface_hub import hf_hub_download
 
         user, repo, filename = str(path)[5:].split("/", 2)
         path = hf_hub_download(f"{user}/{repo}", filename)
-    ckpt = torch.load(path, map_location="cpu", weights_only=False)
+    try:
+        # Release checkpoints hold only tensors and plain values: no code can run on load.
+        ckpt = torch.load(path, map_location="cpu", weights_only=True)
+    except pickle.UnpicklingError:
+        if remote:
+            raise
+        # A training run's own checkpoint (its args are an argparse.Namespace). Full unpickling
+        # can run code, so it is only allowed for local files.
+        ckpt = torch.load(path, map_location="cpu", weights_only=False)
     args = ckpt["args"]
     if not isinstance(args, dict):
         args = vars(args)
