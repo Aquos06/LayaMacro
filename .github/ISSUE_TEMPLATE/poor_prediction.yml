@@ -1,0 +1,82 @@
+name: Poor prediction
+description: The model's nutrition estimate or food answer is clearly wrong for a photo.
+title: "[Prediction] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Reports like this show where the model fails, which is useful even when it cannot be
+        fixed right away. Please check the README's
+        [Limitations](https://github.com/Aquos06/LayaMacro#limitations) first: portion sizes on
+        unfamiliar photos, foods outside the 243 trained ones (`--foods`) and too-narrow ranges on
+        unfamiliar photos are known weaknesses. A report is still welcome if it shows a kind of
+        photo or cuisine not covered there.
+  - type: input
+    id: checkpoint
+    attributes:
+      label: Checkpoint
+      description: The weights you used.
+      placeholder: hf://Aquos06/LayaMacro/layamacro-laya.pt
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command or code
+      render: shell
+      placeholder: uv run python scripts/infer/predict.py --weights hf://Aquos06/LayaMacro/layamacro-laya.pt meal.jpg
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Model output
+      description: The full output.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: truth
+    attributes:
+      label: What is actually right, and how you know
+      description: |
+        For nutrition, say whether the true values were weighed, read from a label or package,
+        worked out from a recipe, or are your own estimate. For a food question, say what is on
+        the plate.
+    validations:
+      required: true
+  - type: dropdown
+    id: setting
+    attributes:
+      label: Kind of meal
+      options:
+        - Cafeteria or canteen tray
+        - Restaurant plate
+        - Home-cooked meal
+        - Packaged or takeaway food
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: angle
+    attributes:
+      label: Camera angle
+      options:
+        - Straight down (overhead)
+        - At an angle
+        - From the side
+    validations:
+      required: true
+  - type: input
+    id: cuisine
+    attributes:
+      label: Cuisine or dishes
+      placeholder: e.g. Indonesian, nasi goreng with a fried egg
+  - type: textarea
+    id: photo
+    attributes:
+      label: Photo (optional)
+      description: |
+        Attach the photo only if you took it yourself, you are happy for it to be public, and it
+        shows no people, faces or identifying details. Do not attach images from datasets whose
+        licence forbids it, and never images from DFood-TJ-F-Nutr (hospital patients' meals).

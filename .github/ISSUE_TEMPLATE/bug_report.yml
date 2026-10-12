@@ -1,0 +1,72 @@
+name: Bug report
+description: Something crashes, errors or behaves differently from the docs.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. If the code works but a prediction is wrong, please use the
+        **Poor prediction** template instead. Security problems go through the
+        [security policy](https://github.com/Aquos06/LayaMacro/security/policy), not a public issue.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: The exact command, or a minimal Python snippet.
+      render: shell
+      placeholder: uv run python scripts/infer/predict.py --weights hf://Aquos06/LayaMacro/layamacro-laya.pt meal.jpg
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error output
+      description: The full traceback or log.
+      render: text
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Inference (predict.py, load_predictor)
+        - Training
+        - Benchmark scripts
+        - Data download or feature caching
+        - Install or dependencies
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: LayaMacro commit
+      description: Output of `git rev-parse --short HEAD`.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: |
+        OS, GPU and driver (or CPU only), and the output of
+        `uv run python -c "import sys, torch, transformers; print(sys.version, torch.__version__, torch.version.cuda, transformers.__version__)"`
+      render: text
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and this has not been reported.
+          required: true
+        - label: Nothing I attached contains personal data (photos of people, names, health records).
+          required: true

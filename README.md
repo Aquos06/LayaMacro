@@ -163,6 +163,13 @@ uv run python scripts/benchmark/vlm.py --model gemma4-e2b   # an untrained VLM b
 - Trained on US cafeteria dishes, Chinese hospital meals and phone photos of mostly Western
   food. Other cuisines and settings are unfamiliar to it.
 
+## Contributing
+
+Bug reports, reproductions (especially other seeds) and reports of poor predictions are
+welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Report security problems privately
+([SECURITY.md](SECURITY.md)). Everyone taking part follows the
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Licence and credits
 
 - **Code**: Apache License 2.0 ([LICENSE](LICENSE)).
