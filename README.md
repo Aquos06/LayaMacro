@@ -3,11 +3,14 @@
 **One photo of a meal → calories, protein, carbohydrate, fat and food weight, each with an
 honest uncertainty range, and answers to questions about the food.**
 
-LayaMacro grafts an image encoder (SigLIP 2) onto [Laya](https://huggingface.co/convaiinnovations/laya),
-an encoder-only *typed decision* model. Every answer is a probability distribution over the
-answer options, read in one forward pass, with no generated text: the nutrition questions
-("How many kilocalories…?" over 18 ranges) and food questions ("Does this meal contain
-rice?", "Which of these foods is on the plate?") go through the same mechanism.
+[![Code licence: Apache-2.0](https://img.shields.io/badge/code-Apache--2.0-blue)](LICENSE)
+[![Weights licence: CC BY-NC-SA 4.0](https://img.shields.io/badge/weights-CC%20BY--NC--SA%204.0-lightgrey)](MODEL_LICENSE.md)
+[![Weights on Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20weights-Aquos06%2FLayaMacro-ffd21e)](https://huggingface.co/Aquos06/LayaMacro)
+![Python 3.12](https://img.shields.io/badge/python-3.12-3776ab)
+
+> **Research project, not a medical device.** Average calorie error is 48-63 kcal per meal on
+> Nutrition5k and DFood-TJ test photos, 170 kcal on NutritionVerse-Real's larger meals, and
+> worse on unfamiliar kinds of photos ([Limitations](#limitations)).
 
 ```
 $ python scripts/infer/predict.py --weights weights/layamacro-laya.pt meal.png \
@@ -23,41 +26,46 @@ meal.png                                            true (weighed)
   Does this meal contain chicken? -> yes (yes 100%, no 0%)   yes
 ```
 
-A Nutrition5k test dish the model never saw, chosen by a fixed rule: among test meals of
-200-400 kcal, the one whose calorie error is closest to the median error (40 kcal). The "true"
-column is not printed by the tool; it is the dataset's weighed label.
+<sub>A Nutrition5k test dish the model never saw, picked by a fixed rule (median calorie error
+among 200-400 kcal meals). The "true" column is the dataset's weighed label, not tool output.</sub>
 
-> **Research project, not a medical device.** Average calorie errors are 48-63 kcal per meal on
-> Nutrition5k and DFood-TJ test photos, 170 kcal on NutritionVerse-Real's larger meals, and
-> worse on unfamiliar kinds of photos (Limitations).
+## Results
 
-## Results at a glance
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/nutrition-dark.svg">
+  <img alt="Calorie error per meal. On Nutrition5k, OmniFood8K is best (36.8 kcal) and LayaMacro (48.5) ties FoodLMM (48.6). On DFood-TJ and NutritionVerse-Real, LayaMacro's error (63.1, 169.9) is far below theirs (168.9-684.7)." src="docs/figures/nutrition-light.svg">
+</picture>
 
-Full tables, methods and negative results: [docs/results.md](docs/results.md).
+OmniFood8K (CVPR 2026) and FoodLMM run by us from their official weights, on the same test
+photos. On Nutrition5k OmniFood8K is clearly better; the right half is new to them, not to
+LayaMacro.
 
-**Nutrition** (kcal mean absolute error, lower is better):
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/questions-dark.svg">
+  <img alt="Food question accuracy. On the 243 trained foods LayaMacro scores 0.86-0.89, above Qwen3.5-2B (0.62-0.80) and Gemma 4 E2B (0.52-0.74). On food names it never trained on it scores 0.65, below Qwen (0.83) and Gemma (0.75)." src="docs/figures/questions-light.svg">
+</picture>
 
-| model | Nutrition5k | never-seen meals | DFood-TJ (hospital trays) | NutritionVerse-Real (phone) |
+Qwen3.5-2B and Gemma 4 E2B are general vision-language models, used as downloaded.
+
+<details>
+<summary>The same numbers as tables</summary>
+
+| kcal error (lower is better) | Nutrition5k | never-seen dishes | DFood-TJ | NutritionVerse-Real |
 |---|---|---|---|---|
 | **LayaMacro** (released checkpoint) | 48.5 | 62.7 | **63.1** | **169.9** |
-| OmniFood8K (CVPR 2026, official weights)* | **36.8** | **50.5** | 168.9 | 639.3 |
-| FoodLMM (7B, official weights)* | 48.6 | 66.2 | 209.3 | 684.7 |
+| OmniFood8K (CVPR 2026, official weights) | **36.8** | **50.5** | 168.9 | 639.3 |
+| FoodLMM (7B, official weights) | 48.6 | 66.2 | 209.3 | 684.7 |
 | Gemma 4 E2B, untrained | 310.0 | 247.3 | 240.9 | 510.9 |
 
-\* Run by us on the same test photos; trained by their authors on Nutrition5k only, so the
-last two columns are transfer to new kinds of photos for them. On Nutrition5k itself,
-OmniFood8K is clearly better.
+| accuracy (chance) | "Contains X?" (0.56) | same, new wording (0.55) | "Which of 5?" (0.20) | "Contains X?", new foods (0.63) |
+|---|---|---|---|---|
+| **LayaMacro** | **0.89** | **0.88** | **0.86** | 0.65 |
+| Qwen3.5-2B, untrained | 0.80 | 0.79 | 0.62 | **0.83** |
+| Gemma 4 E2B, untrained | 0.74 | 0.68 | 0.52 | 0.75 |
 
-**Food questions** (accuracy on test photos; chance: ~0.56 for yes/no, 0.20 for 1-of-5):
+</details>
 
-| model | "Contains X?" | "Contains X?", unseen wording | "Which of these 5 foods?" |
-|---|---|---|---|
-| **LayaMacro** (released checkpoint) | **0.89** | **0.88** | **0.86** |
-| Qwen3.5-2B, untrained | 0.80 | 0.79 | 0.62 |
-| Gemma 4 E2B, untrained | 0.74 | 0.68 | 0.52 |
-
-For the 243 foods it was trained on (`--foods`). For food names it never saw, an untrained VLM
-does better (0.83 vs 0.65): see Limitations.
+Methods, more test sets and negative results: [docs/results.md](docs/results.md).
 
 ## How it works
 
@@ -70,29 +78,20 @@ flowchart LR
     PR --> L["Laya: question, options, then the image tokens<br/>-> one score per option -> probabilities"]
 ```
 
-The image tokens go *after* the question and options, so Laya's answer positions never move
-(details and the other pitfalls: [docs/laya.md](docs/laya.md)). Nutrition is five `score`
-questions over 18 ranges each; the estimate is the distribution's mean and the range its
-central 80 %. Full description: [docs/architecture.md](docs/architecture.md).
+An image encoder (SigLIP 2) grafted onto [Laya](https://huggingface.co/convaiinnovations/laya),
+an encoder-only *typed decision* model. Every answer is a probability distribution over the
+options, read in one forward pass with no generated text. Nutrition is five questions over 18
+ranges each: the estimate is the mean, the range the central 80 %.
+More: [docs/architecture.md](docs/architecture.md), [docs/laya.md](docs/laya.md).
 
-## Install
+## Quick start
 
-Python 3.12, [uv](https://docs.astral.sh/uv/), a CUDA GPU recommended (CPU works, slowly).
-
-```bash
-git clone https://github.com/Aquos06/LayaMacro && cd LayaMacro
-uv sync                      # inference only
-uv sync --extra train        # + training and benchmarks
-```
-
-## Use it
-
-Weights (108 MB, CC BY-NC-SA 4.0, see [MODEL_LICENSE.md](MODEL_LICENSE.md)):
-[Aquos06/LayaMacro](https://huggingface.co/Aquos06/LayaMacro). Laya and SigLIP 2 are
-downloaded from their official sources on first use.
+Python 3.12 and [uv](https://docs.astral.sh/uv/); a CUDA GPU is recommended (CPU works, slowly).
 
 ```bash
-W=hf://Aquos06/LayaMacro/layamacro-laya.pt
+git clone https://github.com/Aquos06/LayaMacro && cd LayaMacro && uv sync
+
+W=hf://Aquos06/LayaMacro/layamacro-laya.pt   # 108 MB, downloaded on first use
 uv run python scripts/infer/predict.py --weights $W meal.jpg                       # nutrition
 uv run python scripts/infer/predict.py --weights $W meal.jpg --over kcal=500 fat_g=20
 uv run python scripts/infer/predict.py --weights $W meal.jpg \
@@ -110,15 +109,19 @@ model.ask(["meal.jpg"], "Does this meal contain rice?", ["yes", "no"])
 model.foods                                     # the 243 food names it was trained on
 ```
 
-**Which questions work well:** "Does this meal contain *X*?" and "Which of these foods is on
-this plate?" for foods in `model.foods`, phrased freely (an unseen wording scored 0.88); up to
-8 options. For "over N kcal / grams", use `--over` / `prob_over`: it is calibrated.
-Questions about other foods or other topics are answered, but weakly.
+Works best for "Does this meal contain *X*?" and "Which of these foods is on this plate?" (up
+to 8 options) with foods from `model.foods`, in any wording. For "over N kcal / grams", use
+`--over` / `prob_over`: it is calibrated. Other foods and topics are answered, but weakly.
 
-## Train
+## Train and benchmark
+
+<details>
+<summary>Train the released recipe (~8.3 h on 2x RTX 4060 Ti)</summary>
 
 ```bash
-# 1. data (see docs/datasets.md for licences)
+uv sync --extra train
+
+# 1. data (licences: docs/datasets.md)
 uv run python scripts/data/download_nutrition5k.py
 uv run python scripts/data/download_dfood_tj.py
 uv run python scripts/data/download_nutritionverse.py   # needs a Kaggle API token
@@ -126,7 +129,7 @@ uv run python scripts/data/download_nutritionverse.py   # needs a Kaggle API tok
 # 2. cache SigLIP 2's output once
 uv run python scripts/data/cache_features.py
 
-# 3. train the released recipe: nutrition + food questions, 2 GPUs, ~8.3 h on 2x RTX 4060 Ti
+# 3. train: nutrition + food questions, 2 GPUs
 uv run torchrun --nproc_per_node 2 scripts/train/train_laya.py --scope head --no-resampler \
     --images-per-batch 1 --epochs 10 --multitask --seed 0
 
@@ -134,10 +137,12 @@ uv run torchrun --nproc_per_node 2 scripts/train/train_laya.py --scope head --no
 uv run python scripts/export_weights.py --run runs/laya_s0 --out weights/my-laya.pt
 ```
 
-The recipe is **unstable across seeds** (see Limitations): check the food-question benchmark
-before using a run.
+The recipe is unstable across seeds: check the food-question benchmark before using a run.
 
-## Benchmark
+</details>
+
+<details>
+<summary>Run the benchmarks</summary>
 
 ```bash
 uv run python scripts/benchmark/evaluate.py         # nutrition, every run on every test set
@@ -147,28 +152,26 @@ uv run python scripts/benchmark/unseen.py           # datasets no model trained 
 uv run python scripts/benchmark/vlm.py --model gemma4-e2b   # an untrained VLM baseline
 ```
 
+</details>
+
 ## Limitations
 
-- **Portion size from one photo is guessed, not measured.** On unfamiliar photos every model
-  we tested, ours included, predicts the portion sizes of its training data.
-- **Uncertainty ranges are too narrow on unfamiliar photos**: they hold the truth 13-23 % of
-  the time there, against 79-92 % on the training datasets' test photos.
-- **Food recognition is limited to the 243 trained foods.** For food names it never saw it is
-  barely better than chance (0.65 on yes/no, 0.40 on 1-of-5), where an untrained Qwen3.5-2B
-  scores 0.83 / 0.55.
-- **Training is unstable**: the same recipe with another random seed failed to learn the
-  food questions. The released checkpoint is the seed that worked, verified on the benchmark.
-- **Food questions cost some calorie accuracy**: the same recipe without food questions
-  averages 46.0 kcal on Nutrition5k (2 seeds), with them 49.1 (2 seeds; released seed 48.5).
-- Trained on US cafeteria dishes, Chinese hospital meals and phone photos of mostly Western
-  food. Other cuisines and settings are unfamiliar to it.
+- **Portion size is guessed, not measured.** On unfamiliar photos every model we tested
+  predicts the portion sizes of its training data.
+- **Ranges are too narrow on unfamiliar photos**: they hold the truth 13-23 % of the time
+  there, against 79-92 % on the training datasets' test photos.
+- **Only the 243 trained foods are recognised well** (chart above).
+- **Training is unstable**: another seed of the same recipe failed to learn the food questions.
+- **Food questions cost some calorie accuracy**: 46.0 → 49.1 kcal on Nutrition5k (mean of 2
+  seeds).
+- **Trained on** US cafeteria dishes, Chinese hospital meals and phone photos of mostly
+  Western food; other cuisines are unfamiliar.
 
 ## Contributing
 
-Bug reports, reproductions (especially other seeds) and reports of poor predictions are
-welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Report security problems privately
-([SECURITY.md](SECURITY.md)). Everyone taking part follows the
-[Code of Conduct](CODE_OF_CONDUCT.md).
+Bug reports, reproductions (especially other seeds) and poor-prediction reports are welcome:
+see [CONTRIBUTING.md](CONTRIBUTING.md). Security problems: [SECURITY.md](SECURITY.md). Everyone
+follows the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Licence and credits
 
